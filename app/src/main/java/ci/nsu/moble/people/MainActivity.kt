@@ -63,7 +63,7 @@ fun Lab1(){
         horizontalAlignment = Alignment.CenterHorizontally
 
     ){
-        Column (modifier = Modifier
+        Column (modifier = Modifier     //ugly
             .fillMaxSize()
             .padding(16.dp)){
             OutlinedTextField(
