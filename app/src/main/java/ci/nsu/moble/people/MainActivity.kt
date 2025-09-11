@@ -1,127 +1,157 @@
 package ci.nsu.moble.people
 
-import androidx.activity.ComponentActivity
-import android.graphics.Color
 import android.os.Bundle
-import android.view.Gravity
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
+private val availableColors = mapOf(
+    "Red" to Color.Red,
+    "blue" to Color.Blue,
+    "green" to Color.Green,
+    "желтый" to Color.Yellow,
+    "черный" to Color.Black,
+    "белый" to Color.White,
+    "фиолетовый" to Color.Magenta,
+    "оранжевый" to Color(0xFFFFA500),
+    "розовый" to Color(0xFFFFC0CB),
+    "серый" to Color.Gray
+)
 class MainActivity : ComponentActivity() {
-
-    // Массив доступных цветов
-    private val availableColors = mapOf(
-        "красный" to Color.RED,
-        "синий" to Color.BLUE,
-        "зеленый" to Color.GREEN,
-        "черный" to Color.BLACK,
-        "белый" to Color.WHITE,
-        "желтый" to Color.YELLOW,
-        "серый" to Color.GRAY,
-        "голубой" to Color.CYAN,
-        "пурпурный" to Color.MAGENTA
-    )
-
-    private lateinit var mainLayout: LinearLayout
-    private lateinit var colorInput: EditText
-    private lateinit var changeColorButton: Button
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Создаем основной контейнер
-        mainLayout = LinearLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT
-            )
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            setPadding(50, 50, 50, 50)
-            setBackgroundColor(Color.WHITE)
-        }
-
-        // Создаем заголовок
-        val titleTextView = TextView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = 40
+        setContent {
+            MaterialTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    ColorChangerScreen()
+                }
             }
-            text = "Выберите цвет для кнопки"
-            textSize = 18f
-            setTextColor(Color.BLACK)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ColorChangerScreen() {
+    var inputColor by remember { mutableStateOf("") }
+    var buttonColor by remember { mutableStateOf(Color.Blue) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Поле ввода цвета
+        TextField(
+            value = inputColor,
+            onValueChange = {
+                inputColor = it
+                errorMessage = "" // Очищаем ошибку при изменении текста
+            },
+            label = { Text("Введите цвет (например: красный, синий)") },
+            modifier = Modifier
+                .background(Color.White)
+                .padding(8.dp),
+            textStyle = TextStyle(fontSize = 16.sp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Кнопка для изменения цвета
+        Button(
+            onClick = {
+                val colorName = inputColor.trim()
+                if (colorName.isNotEmpty()) {
+                    val newColor = availableColors[colorName]
+                    if (newColor != null) {
+                        buttonColor = newColor
+                        errorMessage = ""
+                    } else {
+                        errorMessage = "Цвет '$colorName' не найден в списке доступных цветов"
+                    }
+
+                } else {
+                    errorMessage = "Пожалуйста, введите название цвета"
+                }
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = buttonColor,
+                contentColor = if (buttonColor == Color.Black || buttonColor == Color.Blue) Color.White else Color.Black
+            ),
+            modifier = Modifier
+                .padding(8.dp)
+        ) {
+            Text("Изменить цвет")
         }
 
-        // Создаем поле ввода
-        colorInput = EditText(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = 20
-            }
-            hint = "Введите название цвета (например: красный)"
-            setTextColor(Color.BLACK)
-            setHintTextColor(Color.GRAY)
-        }
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Создаем кнопку
-        changeColorButton = Button(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+        // Сообщение об ошибке
+        if (errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(8.dp)
             )
-            text = "Изменить цвет кнопки"
-            setTextColor(Color.WHITE)
-            setBackgroundColor(Color.DKGRAY)
-            setOnClickListener { changeButtonColor() }
         }
 
-        // Добавляем все элементы в основной layout
-        mainLayout.addView(titleTextView)
-        mainLayout.addView(colorInput)
-        mainLayout.addView(changeColorButton)
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Устанавливаем основной layout как контент активности
-        setContentView(mainLayout)
-    }
+        // Заголовок для списка доступных цветов
+        Text(
+            text = "Доступные цвета:",
+            color = Color.Gray,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(8.dp)
+        )
 
-    private fun changeButtonColor() {
-        val colorName = colorInput.text.toString().trim().lowercase()
-
-        if (colorName.isEmpty()) {
-            showToast("Пожалуйста, введите название цвета")
-            return
+        // Список доступных цветов в виде колонки
+        Column(
+            modifier = Modifier.padding(8.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            availableColors.keys.forEach { colorName ->
+                Text(
+                    text = "• $colorName",
+                    color = Color.Gray,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(vertical = 2.dp)
+                )
+            }
         }
-
-        val color = availableColors[colorName]
-
-        if (color != null) {
-            // Меняем цвет кнопки
-            changeColorButton.setBackgroundColor(color)
-
-            // Меняем цвет текста кнопки для лучшей читаемости
-            val textColor = if (isDarkColor(color)) Color.WHITE else Color.BLACK
-            changeColorButton.setTextColor(textColor)
-
-            showToast("Цвет кнопки изменен на: $colorName")
-        } else {
-            showToast("Такого цвета нет в списке! Доступные цвета: ${availableColors.keys.joinToString()}")
-        }
-    }
-
-    private fun isDarkColor(color: Int): Boolean {
-        val darkness = 1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255
-        return darkness >= 0.5
-    }
-
-    private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
