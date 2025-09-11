@@ -43,7 +43,6 @@ val colorMap = mapOf(
     "gray" to 0xFF808080.toInt(),
     "cyan" to 0xFF00FFFF.toInt(),
     "magenta" to 0xFFFF00FF.toInt(),
-    // Новые цвета
     "brown" to 0xFFA52A2A.toInt(),
     "teal" to 0xFF008080.toInt(),
     "navy" to 0xFF000080.toInt(),
