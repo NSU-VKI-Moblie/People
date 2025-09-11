@@ -5,12 +5,22 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,6 +72,58 @@ val colorMap = mapOf(
     "darkgray" to Color.DarkGray
 )
 
+// Функция для получения списка названий цветов
+fun getColorNames(): List<String> = colorMap.keys.toList()
+
+// Отдельный Composable для окошка со списком цветов
+@Composable
+fun ColorListWindow(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .background(
+                color = Color.LightGray.copy(alpha = 0.1f), // Светлый фон
+                shape = RoundedCornerShape(12.dp) // Закругленные углы
+            )
+            .border(
+                width = 1.dp,
+                color = Color.Gray.copy(alpha = 0.3f), // Серая рамка
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(8.dp)
+    ) {
+        Column {
+            // Заголовок внутри окошка
+            Text(
+                text = "Доступные цвета:",
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .align(Alignment.CenterHorizontally),
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+
+            // LazyColumn со списком цветов и собственным ползунком
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                items(getColorNames()) { colorName ->
+                    Text(
+                        text = "• $colorName", // Добавляем маркеры для лучшей читаемости
+                        modifier = Modifier
+                            .padding(vertical = 2.dp)
+                            .fillMaxWidth(),
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ColorButtonScreen(modifier: Modifier = Modifier) {
@@ -69,7 +131,9 @@ fun ColorButtonScreen(modifier: Modifier = Modifier) {
     var buttonColor by remember { mutableStateOf(Color.Blue) }
 
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()), // Скролл для всего экрана
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
@@ -81,13 +145,14 @@ fun ColorButtonScreen(modifier: Modifier = Modifier) {
             placeholder = { Text("Например: red, blue, green") },
             modifier = Modifier
                 .padding(16.dp)
-                .padding(top = 60.dp) // Добавляем отступ сверху
+                .padding(top = 60.dp)
+                .fillMaxWidth(0.8f) // Ограничиваем ширину для лучшего вида
         )
 
         // Круглая кнопка
         Button(
             onClick = {
-                val colorName = inputText.trim().lowercase()
+                val colorName = inputText.trim()
                 if (colorName.isNotEmpty()) {
                     val newColor = colorMap[colorName]
                     if (newColor != null) {
@@ -110,19 +175,11 @@ fun ColorButtonScreen(modifier: Modifier = Modifier) {
             Text("OK")
         }
 
-        // Список доступных цветов
-        Text(
-            text = "Доступные цвета:",
-            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp
-        )
-
-        // Отображаем список цветов через запятую
-        Text(
-            text = colorMap.keys.joinToString(", "),
-            modifier = Modifier.padding(horizontal = 16.dp),
-            fontSize = 18.sp
+        // Отдельное окошко со списком цветов
+        ColorListWindow(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(0.8f) // Ограничиваем ширину окошка
         )
     }
 }
